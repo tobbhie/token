@@ -1,26 +1,48 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/draft-ERC721Votes.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract Radiator is ERC721, Ownable, EIP712 {
-    using Counters for Counters.Counter;
+contract SafeMath {
 
-    Counters.Counter private _tokenIdCounter;
-
-    constructor() ERC721("Radiator", "RDT") EIP712("Radiator", "1") {}
-
-    function safeMint(address to) public onlyOwner {
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
-        _safeMint(to, tokenId);
+    function safeAdd(uint a, uint b) public pure returns (uint c) {
+        c = a + b;
+        require(c >= a);
     }
 
-    // Metadata of "radiator" was published successfully.
-    //metadata.json : 
-    //dweb:/ipfs/QmQwwjVgvwfteSTiDNEe5e2NZEu6uwJc4YUCn4mQCTfuJs
+    function safeSub(uint a, uint b) public pure returns (uint c) {
+        require(b <= a);
+        c = a - b;
+    }
+
+    function safeMul(uint a, uint b) public pure returns (uint c) {
+        c = a * b;
+        require(a == 0 || c / a == b);
+    }
+
+    function safeDiv(uint a, uint b) public pure returns (uint c) {
+        require(b > 0);
+        c = a / b;
+    }
+}
+
+contract _ercToken is ERC20, Ownable, SafeMath {
+
+    uint256 supply;
+
+    constructor(uint256 initialSupply) ERC20("Tobbhie Inu", "TBI") {
+
+        supply = initialSupply * (10 ** 18);
+        _mint(msg.sender, supply);
+    }
+
+    function buyToken(address receiver, uint256 amount) public onlyOwner{
+
+        require(amount > 0, "Amount needs to be greater than zero");
+        uint rate = 1000;
+        uint amountInput = amount * rate;
+        _mint(receiver, amountInput);
+        _mint(msg.sender, safeAdd(supply, amount));
+    }
 }
